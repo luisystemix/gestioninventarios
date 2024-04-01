@@ -20,6 +20,6 @@ class Category extends Model
     //UNA CATEGORIA PUEDE TENER VARIOS PRODUCTOS
     public function products()
     {
-        return $this->belongsTo(Product::class);
+        return $this->hasmany(Product::class);
     }
 }

@@ -23,7 +23,7 @@ class Product extends Model
     //un producto tendra solo uan categoria
     public function category()
     {
-        return $this->hasOne(Category::class);
+        return $this->belongsTo(Category::class);
     }
 
 }
