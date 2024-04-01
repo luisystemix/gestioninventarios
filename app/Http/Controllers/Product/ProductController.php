@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Product;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Products\StoreProductsRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Product\ProductCollection;
+use App\Http\Requests\Products\StoreProductsRequest;
+use App\Http\Resources\Product\ProductResource;
 
 class ProductController extends Controller
 {
@@ -15,11 +17,12 @@ class ProductController extends Controller
     public function index()
     {
         //trae todos los registros
-        $products = Product::all();
+        // $products = Product::all();
 
-        return response()->json([
-            "products" => $products
-        ]);
+        // return response()->json([
+        //     "products" => $products
+        // ]);
+        return new ProductCollection( Product::all() );
 
     }
 
@@ -47,9 +50,22 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $term)
     {
         //
+        //BUSQUEDA CON DOBLE CONDICION
+        $product = Product::where('id',$term)
+            ->orWhere('slug',$term)
+            ->get();
+
+        // VALIDAR DE QUEE XISTA LA CATEGORIA
+        if(count($product)==0)
+        {
+            return response()->json([               
+               "message" => "No se encontro el product",                              
+            ],404);             
+        }
+        return new ProductResource($product[0]);
     }
 
     /**
@@ -58,6 +74,26 @@ class ProductController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $product = Product::find($id);
+        if(!$product)
+        {
+            return response()->json([
+                "message"=>"No se encontro el producto",
+            ],404);
+        }
+
+        if($request['name'])
+        {
+            $request['slug']=$this->createSlug($request['name']);
+        }
+        
+        $product ->update($request->all());
+
+        return response()->json([          
+           "message" => "El producto fue actualizado",
+           "product"=>new ProductResource($product)
+        ]);
+
     }
 
     /**
@@ -66,6 +102,20 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         //
+        $product = Product::find($id);
+        if(!$product)
+        {
+            return response()->json([
+                "message"=>"No se encontro el producto",
+            ],404);
+        }
+
+        $product->delete();
+
+        return response()->json([          
+            "message" => "El Producto fue eliminado",
+            "product"=> new ProductResource($product),          
+         ],200);
     }
 
     private function createSlug($text)

@@ -15,4 +15,11 @@ class Category extends Model
         'description',               
         
     ];
+
+
+    //UNA CATEGORIA PUEDE TENER VARIOS PRODUCTOS
+    public function products()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
